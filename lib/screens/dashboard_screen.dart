@@ -33,25 +33,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _isOffline = false;
   String? _error;
   SortOption _currentSort = SortOption.name; // Default sort
+  bool _reverseSort = false;
   Timer? _pollingTimer;
 
+
   void _sortSystems() {
-    switch (_currentSort) {
-      case SortOption.name:
-        _systems.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case SortOption.cpu:
-        // Descending for metrics usually makes more sense
-        _systems.sort((a, b) => b.cpuPercent.compareTo(a.cpuPercent));
-        break;
-      case SortOption.ram:
-        _systems.sort((a, b) => b.memoryPercent.compareTo(a.memoryPercent));
-        break;
-      case SortOption.disk:
-        _systems.sort((a, b) => b.diskPercent.compareTo(a.diskPercent));
-        break;
-    }
+    final comparators = <SortOption, int Function(System a, System b)>{
+      SortOption.name: (a, b) => a.name.compareTo(b.name),
+      SortOption.cpu: (a, b) => b.cpuPercent.compareTo(a.cpuPercent),
+      SortOption.ram: (a, b) => b.memoryPercent.compareTo(a.memoryPercent),
+      SortOption.disk: (a, b) => b.diskPercent.compareTo(a.diskPercent),
+    };
+
+    final baseCompare = comparators[_currentSort]!;
+
+    _systems.sort((a, b) =>
+        _reverseSort ? baseCompare(b, a) : baseCompare(a, b));
   }
+  // Original
+  // void _sortSystems() {
+  //   switch (_currentSort) {
+  //     case SortOption.name:
+  //       _systems.sort((a, b) => a.name.compareTo(b.name));
+  //       break;
+  //     case SortOption.cpu:
+  //       // Descending for metrics usually makes more sense
+  //       _systems.sort((a, b) => b.cpuPercent.compareTo(a.cpuPercent));
+  //       break;
+  //     case SortOption.ram:
+  //       _systems.sort((a, b) => b.memoryPercent.compareTo(a.memoryPercent));
+  //       break;
+  //     case SortOption.disk:
+  //       _systems.sort((a, b) => b.diskPercent.compareTo(a.diskPercent));
+  //       break;
+  //   }
+  //   _systems = _reverseSort ? _systems.reversed.toList() : _systems;
+  // }
 
   @override
   void initState() {
@@ -307,7 +324,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                showModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return Column(
+                  return SafeArea(child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                        ListTile(
@@ -358,8 +375,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                            Navigator.pop(context);
                          },
                        ),
+                       CheckboxListTile(
+                        title: const Text('Reverse'),
+                        value: _reverseSort, 
+                        onChanged: (isChecked) {
+                          setState(() {
+                            _reverseSort = isChecked!;
+
+                          });
+                          Navigator.pop(context);
+                          // debugPrint('ischecked is $isChecked');
+                        }), // Placeholder to avoid empty children error
                     ],
-                  );
+                  ));
                 },
                );
             }
@@ -508,8 +536,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     );
                   },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(8.0),
+                  child: 
+                  SafeArea(child: ListView.builder(
+                    padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: _systems.length,
                     itemBuilder: (context, index) {
@@ -518,6 +547,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
                 ),
+              )
     );
   }
 }
@@ -543,6 +573,7 @@ class _SystemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('DEBUG: Building SystemCard for ${system.toString()} with status ${system.status}');
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       elevation: 2,

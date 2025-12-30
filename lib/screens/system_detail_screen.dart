@@ -177,7 +177,8 @@ class _SystemDetailScreenState extends State<SystemDetailScreen> {
       appBar: AppBar(title: Text(widget.system.name)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: 
+        SafeArea(child: Column(
           children: [
             _buildChartCard(tr('history_cpu'), _cpuSpots, Colors.blue, isPercent: true),
             const SizedBox(height: 16),
@@ -188,10 +189,12 @@ class _SystemDetailScreenState extends State<SystemDetailScreen> {
             _buildChartCard('${tr('history_network')} (MB/s)', _netSpots, Colors.green, isPercent: false),
           ],
         ),
+        ),
       ),
     );
   }
 
+  // Original
   Widget _buildChartCard(String title, List<FlSpot> spots, Color color, {required bool isPercent}) {
     double? maxY;
     if (isPercent) maxY = 100;
@@ -206,7 +209,7 @@ class _SystemDetailScreenState extends State<SystemDetailScreen> {
     return Card(
       elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(14.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -287,4 +290,152 @@ class _SystemDetailScreenState extends State<SystemDetailScreen> {
       ),
     );
   }
+
+  // Modified
+//   Widget _buildChartCard(
+//   String title,
+//   List<FlSpot> spots,
+//   Color color, {
+//   required bool isPercent,
+// }) {
+//   double? maxY;
+
+//   // Y-axis logic
+//   if (isPercent) {
+//     maxY = 100;
+//   } else if (spots.isNotEmpty) {
+//     final maxVal = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+//     maxY = (maxVal * 1.2).clamp(1, double.infinity);
+//   }
+
+//   // X-axis interval logic (time-based)
+//   double? xInterval;
+//   if (spots.length >= 2) {
+//     final minX = spots.first.x;
+//     final maxX = spots.last.x;
+//     final totalMs = maxX - minX;
+
+//     // Target ~5 labels max
+//     xInterval = totalMs / 5;
+//   }
+
+//   return Card(
+//     elevation: 3,
+//     child: Padding(
+//       padding: const EdgeInsets.all(16.0),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.stretch,
+//         children: [
+//           Text(
+//             title,
+//             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//           ),
+//           const SizedBox(height: 24),
+//           SizedBox(
+//             height: 200,
+//             child: _isLoading
+//                 ? const Center(child: CircularProgressIndicator())
+//                 : spots.isEmpty
+//                     ? Center(child: Text(tr('no_history')))
+//                     : LineChart(
+//                         LineChartData(
+//                           minY: 0,
+//                           maxY: maxY,
+
+//                           gridData: const FlGridData(show: true),
+//                           borderData: FlBorderData(show: true),
+
+//                           titlesData: FlTitlesData(
+//                             leftTitles: AxisTitles(
+//                               sideTitles: SideTitles(
+//                                 showTitles: true,
+//                                 reservedSize: 40,
+//                                 getTitlesWidget: (value, meta) {
+//                                   return Text(
+//                                     value.toInt().toString(),
+//                                     style: const TextStyle(fontSize: 10),
+//                                   );
+//                                 },
+//                               ),
+//                             ),
+
+//                             rightTitles: const AxisTitles(
+//                               sideTitles: SideTitles(showTitles: false),
+//                             ),
+//                             topTitles: const AxisTitles(
+//                               sideTitles: SideTitles(showTitles: false),
+//                             ),
+
+//                             bottomTitles: AxisTitles(
+//                               sideTitles: SideTitles(
+//                                 showTitles: true,
+//                                 interval: xInterval,
+//                                 reservedSize: 36,
+//                                 getTitlesWidget: (value, meta) {
+//                                   // Only show labels close to interval alignment
+//                                   if (xInterval != null &&
+//                                       (value - meta.min).abs() % xInterval! >
+//                                           xInterval! / 2) {
+//                                     return const SizedBox.shrink();
+//                                   }
+
+//                                   final date = DateTime
+//                                       .fromMillisecondsSinceEpoch(value.toInt());
+
+//                                   return Padding(
+//                                     padding: const EdgeInsets.only(top: 8.0),
+//                                     child: Transform.rotate(
+//                                       angle: -0.4, // ~ -23°
+//                                       child: Text(
+//                                         DateFormat('HH:mm').format(date),
+//                                         style: const TextStyle(fontSize: 10),
+//                                       ),
+//                                     ),
+//                                   );
+//                                 },
+//                               ),
+//                             ),
+//                           ),
+
+//                           lineBarsData: [
+//                             LineChartBarData(
+//                               spots: spots,
+//                               isCurved: true,
+//                               color: color,
+//                               barWidth: 3,
+//                               dotData: const FlDotData(show: false),
+//                               belowBarData: BarAreaData(
+//                                 show: true,
+//                                 color: color.withOpacity(0.2),
+//                               ),
+//                             ),
+//                           ],
+
+//                           lineTouchData: LineTouchData(
+//                             touchTooltipData: LineTouchTooltipData(
+//                               getTooltipItems: (touchedSpots) {
+//                                 return touchedSpots.map((spot) {
+//                                   final date =
+//                                       DateTime.fromMillisecondsSinceEpoch(
+//                                           spot.x.toInt());
+//                                   final timeStr =
+//                                       DateFormat('HH:mm:ss').format(date);
+
+//                                   return LineTooltipItem(
+//                                     '$timeStr\n${spot.y.toStringAsFixed(2)}',
+//                                     const TextStyle(color: Colors.white),
+//                                   );
+//                                 }).toList();
+//                               },
+//                             ),
+//                           ),
+//                         ),
+//                       ),
+//           ),
+//         ],
+//       ),
+//     ),
+//   );
+// }
+
 }

@@ -23,6 +23,11 @@ class System {
     this.os,
   });
 
+  @override
+  String toString() {
+    return 'System(id: $id, name: $name, host: $host, status: $status, cpuPercent: $cpuPercent, memoryPercent: $memoryPercent, diskPercent: $diskPercent, updated: $updated)';
+  }
+
   factory System.fromRecord(RecordModel record) {
     // Helper to safely parse double
     double toDouble(dynamic val) {
